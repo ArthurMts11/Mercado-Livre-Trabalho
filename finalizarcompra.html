@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Estilos para o Checkout */
+        .container {
+            margin-top: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .rq {
+            color: #FF0000;
+            font-size: 10pt;
+        }
+        .qr-code {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .product-item {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <section class="section-principal">
+            <nav class="section-principal-nav">
+                <a class="section-principal-nav-logo" href="index.html">
+                    <img class="section-principal-nav-logo-img" src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadolibre/logo-pt__large_25years@2x.png" alt="Mercado Livre Logo">
+                </a>
+            </nav>
+        </section>
+    </header>
+
+    <main class="container">
+        <h2>Checkout</h2>
+
+        <!-- Exibição dos Produtos no Carrinho -->
+        <h3>Produtos no Carrinho</h3>
+        <div id="cartDetails">
+            <!-- Detalhes dos produtos serão exibidos aqui -->
+        </div>
+
+        <!-- Entrada de CEP para calcular o prazo de entrega -->
+        <div class="form-group">
+            <label for="cep">Digite o seu CEP:</label>
+            <input type="text" id="cep" class="form-control" placeholder="CEP" required>
+            <span class="rq" id="cepError"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="deliveryTime">Prazo de entrega estimado:</label>
+            <input type="text" id="deliveryTime" class="form-control" disabled>
+        </div>
+
+        <!-- Escolha do Método de Pagamento -->
+        <form id="checkoutForm" action="#" method="POST">
+            <div class="form-group">
+                <label for="paymentMethod">Escolha o método de pagamento:</label>
+                <select id="paymentMethod" class="form-control">
+                    <option value="creditCard">Cartão de Crédito</option>
+                    <option value="pix">Pix</option>
+                </select>
+            </div>
+
+            <!-- Formulário para Cartão de Crédito -->
+            <div id="creditCardForm" class="payment-method-form">
+                <div class="form-group">
+                    <label for="cardHolder">Nome no Cartão:</label>
+                    <input type="text" id="cardHolder" class="form-control" placeholder="Nome no cartão" required>
+                    <span class="rq" id="cardHolderError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardNumber">Número do Cartão:</label>
+                    <input type="text" id="cardNumber" class="form-control" placeholder="Número do cartão" required>
+                    <span class="rq" id="cardNumberError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="expirationDate">Data de Validade:</label>
+                    <input type="text" id="expirationDate" class="form-control" placeholder="MM/AAAA" required>
+                    <span class="rq" id="expirationDateError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="cvv">CVV:</label>
+                    <input type="text" id="cvv" class="form-control" placeholder="CVV" required>
+                    <span class="rq" id="cvvError"></span>
+                </div>
+            </div>
+
+            <!-- Formulário para Pix -->
+            <div id="pixForm" class="payment-method-form" style="display: none;">
+                <p>Escolha o Pix para finalizar sua compra.</p>
+                <div class="qr-code" id="pixQRCode">
+                    <!-- O QR Code do Pix será exibido aqui -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Finalizar Compra</button>
+            </div>
+        </form>
+    </main>
+
+    <footer class="footer">
+        <div class="container text-center mt-4">
+            <p>&copy; 2024 Mercado Livre</p>
+        </div>
+    </footer>
+
+    <!-- Carregar a biblioteca QRCode.js -->
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Recupera os IDs dos produtos do carrinho no localStorage
+            const cartIds = JSON.parse(localStorage.getItem('cart')) || [];
+            const productDetails = {};
+
+            if (cartIds.length === 0) {
+                alert("Seu carrinho está vazio.");
+                return;
+            }
+
+            // Calcular o total dos produtos
+            let totalAmount = 0;
+
+            cartIds.forEach(function (productId) {
+                $.getJSON(`https://fakestoreapi.com/products/${productId}`, function (product) {
+                    // Adiciona os detalhes dos produtos ao objeto
+                    
+                    productDetails[productId] = {
+                        title: product.title,
+                        image: product.image,
+                        price: product.price,
+                        productCode: productId, // Código do produto
+                        deliveryTime: "7 dias úteis" // Exemplo de prazo de entrega (pode ser dinâmico)
+                    };
+                    totalAmount += product.price * (1 - 14 / 100);
+                    updateCartDetails();  // Atualiza a exibição do carrinho
+                }).fail(function () {
+                    alert('Erro ao carregar o produto.');
+                });
+            });
+
+            // Função para exibir os detalhes dos produtos no carrinho
+            function updateCartDetails() {
+                let cartHTML = '';
+                for (const productId in productDetails) {
+                    const product = productDetails[productId];
+                    cartHTML += `
+                        <div class="product-item">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <img src="${product.image}" alt="${product.title}" class="img-fluid">
+                                </div>
+                                <div class="col-md-10">
+                                    <h5>${product.title}</h5>
+                                    <p><strong>Código:</strong> ${product.productCode}</p>
+                                    <p><strong>Preço:</strong> R$ ${product.price.toFixed(2)}</p>
+                                    <p><strong>Desconto:</strong> 14%</p>
+                                    <p><strong>Prazo de Entrega:</strong> ${product.deliveryTime}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Exibe o total da compra
+                cartHTML += `<h4>Total: R$ ${totalAmount.toFixed(2)}</h4>`;
+
+                $('#cartDetails').html(cartHTML);
+            }
+
+            // Função para calcular o prazo de entrega com base no CEP
+            $('#cep').on('input', function () {
+                const cep = $(this).val().trim();
+
+                if (cep.length === 8 && /^\d+$/.test(cep)) {
+                    // Supondo que o CEP seja válido (com 8 dígitos numéricos)
+                    let deliveryTime = '7 dias úteis';  // Prazo padrão
+
+                    // Exemplo de cálculo de prazo com base no CEP
+                    if (cep.startsWith('010') || cep.startsWith('020')) {
+                        deliveryTime = '3 dias úteis';
+                    }
+
+                    // Atualiza o campo de prazo de entrega
+                    $('#deliveryTime').val(deliveryTime);
+                } else {
+                    $('#deliveryTime').val('');
+                }
+            });
+
+            // Alterna entre o formulário de Cartão de Crédito e Pix
+            $('#paymentMethod').change(function () {
+                var selectedMethod = $(this).val();
+
+                if (selectedMethod === 'creditCard') {
+                    $('#creditCardForm').show();
+                    $('#pixForm').hide();
+                    $('#pixQRCode').empty();  // Limpa o QR Code se mudar para Cartão de Crédito
+                } else if (selectedMethod === 'pix') {
+                    $('#creditCardForm').hide();
+                    $('#pixForm').show();
+                    generatePixQRCode(totalAmount);  // Gera o QR Code com o valor total
+                }
+            });
+
+            // Função para gerar o QR Code do Pix
+            function generatePixQRCode(amount) {
+                const cpf = "04425129024";  // CPF fictício
+
+                const pixPayload = {
+                    "v": 2,
+                    "cpf": cpf,
+                    "valor": amount.toFixed(2),
+                    "chave": "pix@exemplo.com",  // A chave Pix do recebedor
+                    "descricao": "Pagamento por Pix",
+                    "url": "https://www.exemplo.com"  // URL para confirmar o pagamento
+                };
+
+                const qrCodeData = JSON.stringify(pixPayload);
+                const qrcode = new QRCode(document.getElementById("pixQRCode"), {
+                    text: qrCodeData,
+                    width: 256,
+                    height: 256,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                // Redireciona automaticamente para a página de comprovante
+                setTimeout(function () {
+                    const purchaseDetails = {
+                        products: productDetails,
+                        paymentMethod: 'pix',
+                        totalAmount: amount.toFixed(2),
+                        cpf: cpf
+                    };
+
+                    localStorage.setItem('purchaseDetails', JSON.stringify(purchaseDetails));
+                    window.location.href = 'comprovante.html';
+                }, 2000); // Atraso de 2 segundos antes de redirecionar
+            }
+
+            // Validação do formulário de cartão de crédito
+            $('#checkoutForm').submit(function (event) {
+                event.preventDefault();
+
+                var cardHolder = $('#cardHolder').val();
+                var cardNumber = $('#cardNumber').val();
+                var expirationDate = $('#expirationDate').val();
+                var cvv = $('#cvv').val();
+
+                var valid = true;
+
+                if (cardHolder === "") {
+                    $('#cardHolderError').text("O nome no cartão é obrigatório.");
+                    valid = false;
+                } else {
+                    $('#cardHolderError').text("");
+                }
+
+                var cardNumberRegex = /^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12}|(?:2131|1800|35[0-9]{3})[0-9]{11})$/;
+                if (!cardNumberRegex.test(cardNumber)) {
+                    $('#cardNumberError').text("Número de cartão inválido.");
+                    valid = false;
+                } else {
+                    $('#cardNumberError').text("");
+                }
+
+                var expirationDateRegex = /^(0[1-9]|1[0-2])\/\d{4}$/;
+                if (!expirationDateRegex.test(expirationDate)) {
+                    $('#expirationDateError').text("Data de validade inválida.");
+                    valid = false;
+                } else {
+                    $('#expirationDateError').text("");
+                }
+
+                if (cvv.length !== 3 || isNaN(cvv)) {
+                    $('#cvvError').text("CVV inválido.");
+                    valid = false;
+                } else {
+                    $('#cvvError').text("");
+                }
+
+                if (valid) {
+                    const purchaseDetails = {
+                        products: productDetails,
+                        paymentMethod: 'creditCard',
+                        cardHolder: cardHolder,
+                        cardNumber: cardNumber,
+                        expirationDate: expirationDate,
+                        cvv: cvv
+                    };
+
+                    localStorage.setItem('purchaseDetails', JSON.stringify(purchaseDetails));
+
+                    window.location.href = 'comprovante.html';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

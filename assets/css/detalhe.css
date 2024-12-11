@@ -1,0 +1,81 @@
+/* Reset de margin e padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+/* Cabeçalho */
+header .navbar {
+    background-color: #fff;
+    padding: 15px;
+}
+
+header .navbar-brand img {
+    width: 150px;
+}
+
+/* Produto Detalhes */
+.produto-detalhes {
+    margin-top: 50px;
+}
+
+#imagem-principal img {
+    max-width: 100%;
+    border: 1px solid #e0e0e0;
+}
+
+.imagens-secundarias img {
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+    border: 1px solid #e0e0e0;
+}
+
+.imagens-secundarias img:hover {
+    transform: scale(1.1);
+    border-color: #ff9900;
+}
+
+/* Informações do Produto */
+h1 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.price-section, .avaliações {
+    margin-top: 15px;
+}
+
+#preco-produto {
+    font-size: 20px;
+    color: #00a650;
+}
+
+#parcelamento {
+    font-weight: bold;
+}
+
+.add-to-cart button {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    background-color: #00a650;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.add-to-cart button:hover {
+    background-color: #ff7f00;
+}
+
+footer {
+    background-color: #f1f1f1;
+    padding: 20px 0;
+    margin-top: 50px;
+}

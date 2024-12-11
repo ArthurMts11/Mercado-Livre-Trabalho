@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .alert {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2 class="text-center">Login</h2>
+
+        <!-- Alerta de erro -->
+        <div class="alert alert-danger" id="alert-error" role="alert">
+            E-mail ou senha incorretos. Tente novamente.
+        </div>
+
+        <!-- Formulário de Login -->
+        <form id="loginForm">
+            <div class="mb-3">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" class="form-control" id="email" required>
+            </div>
+            <div class="mb-3">
+                <label for="senha" class="form-label">Senha</label>
+                <input type="password" class="form-control" id="senha" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+        </form>
+
+        <p class="text-center mt-3">Não tem conta? <a href="#">Cadastre-se</a></p>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        // Array de usuários simulados
+        var usuarios = [
+            { "login": "user@example.com", "senha": "123456" } // Usuário de teste
+        ];
+
+        $(document).ready(function() {
+            // Quando o formulário for enviado
+            $('#loginForm').submit(function(event) {
+                event.preventDefault(); // Impede o envio padrão do formulário
+
+                // Obtém os valores de e-mail e senha
+                const email = $('#email').val();
+                const senha = $('#senha').val();
+
+                // Função de login com verificação
+                function Login() {
+                    // Loop para verificar os dados no array de usuários
+                    for (var u in usuarios) {
+                        var us = usuarios[u];
+                        if (us.login === email && us.senha === senha) { // Verifica se o e-mail e a senha estão corretos
+                            localStorage.setItem('userAuthenticated', 'true'); // Armazena no localStorage que o usuário está autenticado
+                            alert('Login realizado com sucesso!');
+                            window.location.href = 'index.html'; // Redireciona para a página principal
+                            return true;
+                        }
+                    }
+                    $('#alert-error').show(); // Exibe a mensagem de erro se os dados forem incorretos
+                    return false;
+                }
+
+                // Chama a função Login
+                Login();
+            });
+        });
+    </script>
+</body>
+</html>

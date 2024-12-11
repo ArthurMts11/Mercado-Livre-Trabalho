@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrinho de Compras</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/carrinho.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+</head>
+<body>
+    <header class="header">
+        <section class="section-principal">
+            <nav class="section-principal-nav">
+                <a class="section-principal-nav-logo" href="index.html">
+                    <img class="section-principal-nav-logo-img" src="https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/6.6.92/mercadolibre/logo-pt__large_25years@2x.png" alt="Mercado Livre Logo">
+                </a>
+
+                <div class="section-principal-nav-search">
+                    <input type="text" class="nav-search-input" id="cb1-edit" name="as_word" placeholder="Buscar produtos, marcas e muito mais…" maxlength="120" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
+                    <button class="section-principal-nav-search-button"><img src="assets/img/search-solid.svg" alt=""></button>
+                </div>
+
+                <div class="section-principal-nav-cart">
+                    <a href=""><img  class="section-principal-nav-search-img" src="https://http2.mlstatic.com/D_NQ_937445-MLA80710687882_112024-OO.webp" alt=""></a>
+                </div>
+            </nav>
+        </section>
+        <section class="section-secundaria">
+            <nav class="section-secundaria-nav">
+                <button class="section-secundaria-nav-button"> 
+                    <img src="" alt="">
+                    <p>Informe seu cep</p>
+                </button>
+                <ol class="section-secundaria-nav-list">
+                    <li class="section-secundaria-nav-list-item"><a href="">Categorias</a></li>
+                    <li class="section-secundaria-nav-list-item"><a href="">Ofertas</a></li>
+                    <li class="section-secundaria-nav-list-item"><a href="">Cupons</a></li>
+                    <li class="section-secundaria-nav-list-item"><a href="">Supermercado</a></li>
+                    <li class="section-secundaria-nav-list-item"><a href="">Moda</a></li>
+                    <li class="section-secundaria-nav-list-item"><a href="">Mercado Play</a></li>
+                    <li class="section-secundaria-nav-list-item"><a href="">Vender</a></li>
+                    <li class="section-secundaria-nav-list-item"><a href="">Contato</a></li>
+                </ol>
+            
+                <ol>
+                    <nav class="section-secundaria-nav-list">
+                        <li class="section-secundaria-nav-list-item"><a href="">Crie a sua conta</a></li>
+                        <li class="section-secundaria-nav-list-item"><a href="">Entre</a></li>
+                        <li class="section-secundaria-nav-list-item"><a href="">Compras</a></li>
+                        <li class="section-secundaria-nav-list-item"><a href="carrinho.html"><img src="assets/img/shopping-cart-solid.svg" alt=""></a></li>
+                    </nav>
+                </ol>
+        </section>
+    </header>
+
+    <main class="container mt-5">
+        <h2>Carrinho de Compras</h2>
+        <div id="produtos-carrinho" class="row"></div>
+
+        <div id="total-carrinho" class="mt-4">
+            <h3>Total: R$ <span id="total-val"></span></h3>
+            <button class="btn btn-success" id="finalizar-compra">Finalizar Compra</button>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container text-center mt-4">
+            <p>&copy; 2024 Mercado Livre</p>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Recupera os IDs dos produtos no carrinho do localStorage
+            const cartIds = JSON.parse(localStorage.getItem('cart')) || [];
+
+            if (cartIds.length === 0) {
+                $('#produtos-carrinho').html('<p>Seu carrinho está vazio.</p>');
+                $('#total-carrinho').hide();
+            } else {
+                // Cria um objeto para agrupar os produtos com suas quantidades
+                const groupedProducts = {};
+
+                cartIds.forEach(function(productId) {
+                    // Se o produto já existir, apenas aumenta a quantidade
+                    if (groupedProducts[productId]) {
+                        groupedProducts[productId]++;
+                    } else {
+                        // Se o produto não existe, adiciona ao objeto
+                        groupedProducts[productId] = 1;
+                    }
+                });
+
+                // Carregar os produtos do carrinho da API (apenas uma vez)
+                const productDetails = {}; // Objeto para armazenar os detalhes dos produtos
+
+                const discountPercentage = 14; // Desconto fictício de 14%
+
+                Object.keys(groupedProducts).forEach(function(productId) {
+                    $.getJSON(`https://fakestoreapi.com/products/${productId}`, function(product) {
+                        // Armazena o produto no objeto productDetails
+                        productDetails[productId] = {
+                            title: product.title,
+                            image: product.image,
+                            price: product.price,
+                            discountPrice: product.price * (1 - discountPercentage / 100)
+                        };
+
+                        // Atualiza o HTML do carrinho
+                        updateCart();
+                    }).fail(function() {
+                        alert('Erro ao carregar produto.');
+                    });
+                });
+
+                // Função para atualizar o carrinho na tela
+                function updateCart() {
+                    let totalValue = 0;
+                    $('#produtos-carrinho').empty(); // Limpa o carrinho antes de adicionar os produtos novamente
+
+                    Object.keys(groupedProducts).forEach(function(productId) {
+                        const product = productDetails[productId];
+                        const quantity = groupedProducts[productId];
+                        const productTotal = product.discountPrice * quantity;
+                        totalValue += productTotal;
+
+                        // Criar HTML do produto
+                        const productHTML = `
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <img src="${product.image}" class="card-img-top" alt="${product.title}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${product.title}</h5>
+                                        <p class="card-text">R$ ${product.discountPrice.toFixed(2)}</p>
+                                        <p class="card-text"><strong>Quantidade: ${quantity}</strong></p>
+                                        <button class="btn btn-danger remover-item" data-id="${productId}">Remover 1</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Adicionar o produto ao carrinho
+                        $('#produtos-carrinho').append(productHTML);
+                    });
+
+                    // Atualizar o total
+                    $('#total-val').text(totalValue.toFixed(2));
+                }
+
+                // Remover unidade do produto
+                $(document).on('click', '.remover-item', function() {
+                    const productId = $(this).data('id');
+                    if (groupedProducts[productId] > 1) {
+                        // Se a quantidade for maior que 1, diminui a quantidade
+                        groupedProducts[productId]--;
+                    } else {
+                        // Caso a quantidade seja 1, remove o produto do carrinho
+                        delete groupedProducts[productId];
+                    }
+
+                    // Atualiza o carrinho no localStorage
+                    const updatedCartIds = [];
+                    Object.keys(groupedProducts).forEach(function(id) {
+                        for (let i = 0; i < groupedProducts[id]; i++) {
+                            updatedCartIds.push(id);
+                        }
+                    });
+                    localStorage.setItem('cart', JSON.stringify(updatedCartIds)); // Atualiza o carrinho no localStorage
+
+                    // Atualizar o total e os itens na tela
+                    updateCart();
+                });
+
+                // Inicializa o carrinho e o total
+                updateCart();
+            }
+
+            
+        });
+
+        $(document).ready(function() {
+    // Recupera os IDs dos produtos no carrinho do localStorage
+    const cartIds = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Função para salvar os produtos no localStorage e redirecionar para o checkout
+    $('#finalizar-compra').on('click', function() {
+        if (cartIds.length > 0) {
+            // Salvar o carrinho no localStorage
+            localStorage.setItem('cart', JSON.stringify(cartIds));
+
+            // Redireciona para a página de checkout
+            window.location.href = 'finalizarcompra.html';
+        } else {
+            alert('Seu carrinho está vazio!');
+        }
+    });
+});
+
+    </script>
+</body>
+</html>
